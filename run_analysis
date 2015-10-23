@@ -1,0 +1,66 @@
+##Set the correct Working directory
+setwd("C:/Users/clarkad/Documents/R Data/Getting and Cleaning Data/getdata-projectfiles-UCI HAR Dataset/UCI HAR Dataset")
+
+##Read in tables of the TEST data    !!!BULLET POINT ONE!!!
+TestData = read.table("test/X_test.txt")
+TestLabel = read.table("test/y_test.txt")
+subjectTest = read.table("test/subject_test.txt")
+
+##Read in tables of the TRAIN data
+TrainData = read.table("train/X_train.txt")
+TrainLabel = read.table("train/y_train.txt")
+subjectTrain = read.table("train/subject_train.txt")
+
+##Combine the three data sources for Test and Train
+Train = cbind(subjectTrain, TrainLabel, TrainData)
+Test = cbind(subjectTest, TestLabel, TestData)
+
+##give column names
+colnames(Test) <- c("ID", "Type", seq(1,561,1))
+colnames(Train) <- c("ID", "Type", seq(1,561,1))
+
+#Merge both data into one dataset
+MergedData = merge(Test, Train, all = TRUE)
+
+MeanData <-0
+sdData <- 0
+
+#Work out mean and standard deviation for each measurement !! BULLET POINT TWO!!!
+for(i in 1:563){ MeanData = cbind( MeanData, mean(MergedData[3:10299,i]))} #col variable is changeable for specific measurement
+for(i in 1:563){ sdData = cbind(sdData, sd(MergedData[3:10299,i]))} #col variable is changeable for specific measurement
+
+##Read in descriptive activity and feature names !! BULLET POINTS THREE AND FOUR!!
+Activity = read.table("activity_labels.txt")
+Features = read.table("features.txt")
+
+MergedData[,1] = Activity[MergedData[,1],2 ]  
+colnames(MergedData) <- c("ID", "Type", paste(Features[1:561,2],sep="\" \""))
+
+
+##BULLET POINT 5.
+
+TypeData <- split(MergedData, MergedData$Type)
+
+Laying <-0
+for(i in 3:563){ Laying = cbind( Laying, mean(TypeData[[1]][3:length(TypeData[[1]]),i]))} #col variable is changeable for specific measurement
+
+Sitting <-0
+for(i in 3:563){ Sitting = cbind( Sitting, mean(TypeData[[2]][3:length(TypeData[[1]]),i]))} #col variable is changeable for specific measurement
+
+WalkingUp <-0
+for(i in 3:563){ WalkingUp = cbind( WalkingUp, mean(TypeData[[3]][3:length(TypeData[[1]]),i]))} #col variable is changeable for specific measurement
+
+WalkingDown <-0
+for(i in 3:563){ WalkingDown = cbind( WalkingDown, mean(TypeData[[4]][3:length(TypeData[[1]]),i]))} #col variable is changeable for specific measurement
+
+Walking <-0
+for(i in 3:563){ Walking = cbind( Walking, mean(TypeData[[5]][3:length(TypeData[[1]]),i]))} #col variable is changeable for specific measurement
+
+Standing <- 0
+for(i in 3:563){ Standing = cbind( Standing, mean(TypeData[[6]][3:length(TypeData[[1]]),i]))} #col variable is changeable for specific measurement
+
+data <- rbind(Laying,Sitting,WalkingUp,WalkingDown,Walking,Standing)
+rownames(data) <- c("Laying","Sitting","WalkingUp","WalkingDown","Walking","Standing")
+colnames(data) <- c("ID",paste(Features[1:561,2],sep="\" \""))
+
+write.table(data, file="data.txt",row.name= FALSE)
